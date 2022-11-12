@@ -1,0 +1,40 @@
+
+  model{
+  
+  # weight data likelihood
+  
+  mean.wt ~ dnorm( 100, 0.001  )
+  tau.wt <- 1/(sd*sd)
+  sd ~ dunif( 0, 50 )
+  
+  for( i in 1:M ){
+    wt[i] ~ dnorm( mean.wt, tau.wt )
+  }
+  
+  # priors
+  
+  b0.psi ~ dnorm( 0, 0.001 )T(-10,10)
+  b0.p ~ dnorm( 0, 0.001 )T(-10,10)
+  
+  logit(psi) <- b0.psi
+  
+  for( i in 1:M ){
+    for( t in 1:nocc ){
+      logit(p[i,t]) <- b0.p + b1.p*rain[t] + b2.p*wt[i]
+    }
+  }
+  
+  # likelihood
+  for( i in 1:M  ){  # M is arbitrary really big number
+    
+    z[i] ~ dbern( psi )
+    
+    for( t in 1:nocc ){
+      y[i,t] ~ dbern( p[i,t]*z[i] ) 
+    }
+  }  
+    
+  # derived parameter
+  N <- sum( z[] )
+  
+  }

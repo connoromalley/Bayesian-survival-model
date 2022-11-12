@@ -1,0 +1,36 @@
+
+  model{
+  
+  sd ~ dunif( 0, 10 )
+  tau <- 1/(sd*sd)
+  for( i in 1:M ){
+    e[i] ~ dnorm( 0, tau )
+  }
+  
+  # priors
+  
+  b0.psi ~ dnorm( 0, 0.001 )T(-10,10)
+  b0.p ~ dnorm( 0, 0.001 )T(-10,10)
+  
+  logit(psi) <- b0.psi
+  
+  for( i in 1:M ){
+    for( t in 1:nocc ){
+      logit(p[i,t]) <- b0.p + e[i]
+    }
+  }
+  
+  # likelihood
+  for( i in 1:M  ){  # M is arbitrary really big number
+    
+    z[i] ~ dbern( psi )
+    
+    for( t in 1:nocc ){
+      y[i,t] ~ dbern( p[i,t]*z[i] ) 
+    }
+  }  
+    
+  # derived parameter
+  N <- sum( z[] )
+  
+  }

@@ -1,0 +1,31 @@
+# CJS model
+
+model {
+    # priors... phi is survival and p is capture (or recapture?) probability
+    b0.phi ~ dnorm( 0, 0.001 )T(-10,10) # fit the priors to a normal distribution... what is T??
+    b0.p ~ dnorm( 0, 0.001 )T(-10,10)
+    
+    logit(mean.phi) <- b0.phi
+    logit(mean.p) <- b0.p
+    
+    for( i in 1:nind ){
+      for( t in f[i]:(nocc-1) ){
+        phi[i,t] <- mean.phi
+        p[i,t] <- mean.p
+      }
+    }
+    
+    # likelihood
+    for( i in 1:nind ){
+      z[i,f[i]] <- 1
+      for( t in (f[i]+1):nocc ){
+        # state
+        z[i,t] ~ dbern( mu1[i,t] )
+        mu1[i,t] <- phi[i, t-1] * z[i,t-1]
+        # observation
+        y[i,t] ~ dbern( mu2[i,t] )
+        mu2[i,t] <- p[i,t-1] * z[i,t]
+      }
+    }
+  
+  }
